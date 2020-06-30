@@ -19,7 +19,7 @@ services:
     build:
       context: ./postgres
     volumes:
-      - $HOME/docker/volumes/busichat/postgres:/var/lib/postgresql/data
+      - /var/lib/docker/volumes/busichat/postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
