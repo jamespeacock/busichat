@@ -20,7 +20,7 @@ RUN pipenv install --deploy --system
 
 COPY . /app
 
-EXPOSE 5000
+EXPOSE 80
 
 ENTRYPOINT [ "python3" ]
 
