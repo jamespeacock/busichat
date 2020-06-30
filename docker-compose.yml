@@ -1,0 +1,29 @@
+version: '2'
+services:
+  api:
+    container_name: api
+    build:
+      context: .
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+    environment:
+      - POSTGRES_PASSWORD=test
+    depends_on:
+      - postgres
+    restart: always
+
+  postgres:
+    container_name: postgres
+    build:
+      context: ./postgres
+    volumes:
+      - $HOME/docker/volumes/busichat/postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=test
+    restart: always
+
+
