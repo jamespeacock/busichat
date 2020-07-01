@@ -8,6 +8,10 @@ verify_ssl = true
 [packages]
 twilio = "*"
 flask = "*"
+python-dotenv = "*"
+gspread = "*"
+oauth2client = "*"
+fuzzywuzzy = {extras = ["speedup"], version = "*"}
 
 [requires]
 python_version = "3.6"
