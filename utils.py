@@ -1,4 +1,6 @@
 import logging
+
+import _logger
 from collections import defaultdict
 
 import requests
@@ -17,6 +19,16 @@ auth = (account_sid, auth_token)
 # test_survey_http = "https://studio.twilio.com/v1/Flows/FW145b255594b997cb7d4ae5c8746fa176/Executions"
 
 # numbers = ['+17138656269', '+15178031167']
+
+CONTEXT = "context"
+WIDGETS = "widgets"
+CONTACT = "contact"
+CHANNEL = "channel"
+ADDRESS = "address"
+IN = "inbound"
+OUT = "outbound"
+FROM = "From"
+BODY = "Body"
 
 
 def ensure_formatted(numbers):
@@ -51,3 +63,29 @@ def lookup_trigger(t):
     if t == "TEST":
         return "https://studio.twilio.com/v1/Flows/TEST"
     return ""
+
+
+def handle_results(flow_data):
+    print(flow_data)
+
+    template = {
+        "qs": [
+            "census_question"
+        ]
+    }
+
+    QS = "qs"
+
+    questions = flow_data[CONTEXT][WIDGETS]
+    res = {
+        "recipient": flow_data[CONTEXT][CONTACT][CHANNEL][ADDRESS],
+        "questions": []
+    }
+    for q in template[QS]:
+        q_data = questions[q]
+        res["questions"].append({
+            "name": q,
+            "response": q_data[IN][BODY]
+        })
+
+    return res
