@@ -66,7 +66,6 @@ def lookup_trigger(t):
 
 
 def handle_results(flow_data):
-    print(flow_data)
 
     template = {
         "qs": [
@@ -82,10 +81,14 @@ def handle_results(flow_data):
         "questions": []
     }
     for q in template[QS]:
-        q_data = questions[q]
+        q_data = questions[q] if q in questions else None
+        if not q_data:
+            continue
+
         res["questions"].append({
             "name": q,
             "response": q_data[IN][BODY]
         })
 
     return res
+

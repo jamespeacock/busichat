@@ -1,3 +1,5 @@
+import datetime
+
 import gspread
 from fuzzywuzzy import process
 from gspread import Worksheet
@@ -32,6 +34,9 @@ class MySheet:
 
         self.cols = list(self.sheet.row_values(1))
 
+    def phone_exists(self, num):
+        return True if self.sheet.find(num, in_column=self._col(PHONE)) else False
+
     def get_columns(self, names, cells):
         matches = [process.extract(n, self.cols, limit=1)[0][0] for n in names]
         return [(p[c] for c in matches) for p in cells]
@@ -53,10 +58,28 @@ class MySheet:
             for n in numbers:
                 info[n] = {"a": "b"}
             initiate_workflow(numbers, lookup_trigger(act_val), info)
+        return numbers
 
     def _col(self, i):
         return self.cols.index(i)+1
 
+    def create(self, n, info):
+        vals = [n, *info.values()]
+        self.sheet.insert_row(vals)
+
 
 sheet1 = MySheet('Editable Contact Status')
-sheet1.scan_for_action("TEST")
+action_value = "TEST"
+numbers = sheet1.scan_for_action(action_value)
+
+
+sheet2 = MySheet('Editable Contact Status', sheet=1)
+
+row = {
+    "campaign": action_value,
+    "initiated": str(datetime.datetime.now())
+}
+
+for n in numbers:
+    sheet2.create(n, row)
+
