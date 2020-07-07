@@ -76,8 +76,13 @@ def collect(step):
     # TODO extract YES/NO census info / Zipcode info /
     with open("./execution_results.json", "w") as f:
         f.write(request.values)
+        f.close()
 
-    handle_results(request.values)
+    results = handle_results(request.values, step)
+
+    #Lookup MySheet by Flow ID
+    #Lookup row in MySheet by ExecutionID
+    #Insert into cell by column==question & row=eid_match
 
     return 0
 

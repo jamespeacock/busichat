@@ -1,0 +1,125 @@
+{
+    "context": {
+        "contact": {
+            "channel": {
+                "address": "+15178031167"
+            }
+        },
+        "trigger": {
+            "request": {
+                "from": "+12162841244",
+                "to": "+15178031167",
+                "parameters": {}
+            }
+        },
+        "widgets": {
+            "census_split": {},
+            "census_question": {
+                "inbound": {
+                    "ApiVersion": "2010-04-01",
+                    "SmsSid": "SM2fb52b142621f7793b09ad97e11a59c0",
+                    "SmsStatus": "received",
+                    "SmsMessageSid": "SM2fb52b142621f7793b09ad97e11a59c0",
+                    "NumSegments": "1",
+                    "From": "+15178031167",
+                    "ToState": "OH",
+                    "MessageSid": "SM2fb52b142621f7793b09ad97e11a59c0",
+                    "AccountSid": "ACeda0bea6efbc1d71cd7c1ed504a5bd33",
+                    "ToZip": "",
+                    "FromCountry": "US",
+                    "ToCity": "",
+                    "FromCity": "LANSING",
+                    "To": "+12162841244",
+                    "FromZip": "48915",
+                    "Body": "Yes",
+                    "ToCountry": "US",
+                    "FromState": "MI",
+                    "NumMedia": "0"
+                },
+                "outbound": {
+                    "Status": "queued",
+                    "ApiVersion": "2010-04-01",
+                    "MessagingServiceSid": null,
+                    "DateUpdated": "2020-06-30T22:03:19.000Z",
+                    "DateCreated": "2020-06-30T22:03:19.000Z",
+                    "NumSegments": "1",
+                    "From": "+12162841244",
+                    "Direction": "outbound-api",
+                    "AccountSid": "ACeda0bea6efbc1d71cd7c1ed504a5bd33",
+                    "Sid": "SMddb284ee8e2d458c861aee078a74a879",
+                    "DateSent": null,
+                    "PriceUnit": "USD",
+                    "Price": null,
+                    "SubresourceUris": {
+                        "media": "/2010-04-01/Accounts/ACeda0bea6efbc1d71cd7c1ed504a5bd33/Messages/SMddb284ee8e2d458c861aee078a74a879/Media.json"
+                    },
+                    "ErrorCode": null,
+                    "To": "+15178031167",
+                    "ErrorMessage": null,
+                    "Body": "Sent from your Twilio trial account - Have you completed the 2020 census?",
+                    "NumMedia": "0"
+                }
+            },
+            "send_results_to_server": {
+                "ApiVersion": "2010-04-01",
+                "SmsSid": "SM2fb52b142621f7793b09ad97e11a59c0",
+                "SmsStatus": "received",
+                "SmsMessageSid": "SM2fb52b142621f7793b09ad97e11a59c0",
+                "NumSegments": "1",
+                "From": "+15178031167",
+                "ToState": "OH",
+                "MessageSid": "SM2fb52b142621f7793b09ad97e11a59c0",
+                "AccountSid": "ACeda0bea6efbc1d71cd7c1ed504a5bd33",
+                "FlowEvent": "failed",
+                "ToZip": "",
+                "FromCountry": "US",
+                "ToCity": "",
+                "FromCity": "LANSING",
+                "To": "+12162841244",
+                "FromZip": "48915",
+                "Body": "Yes",
+                "ToCountry": "US",
+                "FromState": "MI",
+                "NumMedia": "0"
+            },
+            "direct_to_census": {
+                "outbound": {
+                    "Status": "queued",
+                    "ApiVersion": "2010-04-01",
+                    "MessagingServiceSid": null,
+                    "DateUpdated": "2020-06-30T22:03:36.000Z",
+                    "DateCreated": "2020-06-30T22:03:36.000Z",
+                    "NumSegments": "1",
+                    "From": "+12162841244",
+                    "Direction": "outbound-api",
+                    "AccountSid": "ACeda0bea6efbc1d71cd7c1ed504a5bd33",
+                    "Sid": "MMe070030680a841bf88866ac5a474d7b3",
+                    "DateSent": null,
+                    "PriceUnit": "USD",
+                    "Price": null,
+                    "SubresourceUris": {
+                        "media": "/2010-04-01/Accounts/ACeda0bea6efbc1d71cd7c1ed504a5bd33/Messages/MMe070030680a841bf88866ac5a474d7b3/Media.json"
+                    },
+                    "ErrorCode": null,
+                    "To": "+15178031167",
+                    "ErrorMessage": null,
+                    "Body": "You can fill out the census here:",
+                    "NumMedia": "1"
+                }
+            }
+        },
+        "flow": {
+            "flow_sid": "FW34e1b974dafc860cf1149869a6c04d1f",
+            "data": {},
+            "channel": {
+                "address": "+12162841244"
+            },
+            "sid": "FN5d40d08f8e531fc9d91894935777d1e2"
+        }
+    },
+    "account_sid": "ACeda0bea6efbc1d71cd7c1ed504a5bd33",
+    "flow_sid": "FW34e1b974dafc860cf1149869a6c04d1f",
+    "execution_sid": "FN5d40d08f8e531fc9d91894935777d1e2",
+    "step_sid": "FT9a30db0a8e635320caa49c8add6a9d99",
+    "encrypted": true
+}

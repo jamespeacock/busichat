@@ -55,31 +55,33 @@ class MySheet:
             act_val = matches[0].value
             numbers = self.values(PHONE, rows) # make columns element of this class
             info = {}
-            for n in numbers:
-                info[n] = {"a": "b"}
-            initiate_workflow(numbers, lookup_trigger(act_val), info)
-        return numbers
+            eids = initiate_workflow(numbers, lookup_trigger(act_val), info)
+
+        return eids
 
     def _col(self, i):
         return self.cols.index(i)+1
 
     def create(self, n, info):
         vals = [n, *info.values()]
-        self.sheet.insert_row(vals)
+        self.sheet.append_row(vals)
 
 
-sheet1 = MySheet('Editable Contact Status')
+# sheet1 = MySheet('Editable Contact Status')
+filename = 'Demo Sheet'
+sheet1 = MySheet(filename)
 action_value = "TEST"
-numbers = sheet1.scan_for_action(action_value)
+eids = sheet1.scan_for_action(action_value)
 
 
-sheet2 = MySheet('Editable Contact Status', sheet=1)
+sheet2 = MySheet(filename, sheet=1)
 
 row = {
     "campaign": action_value,
     "initiated": str(datetime.datetime.now())
 }
 
-for n in numbers:
+for n in eids:
+    row["eid"] = eids[n]
     sheet2.create(n, row)
 
