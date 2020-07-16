@@ -119,7 +119,5 @@
     },
     "account_sid": "ACeda0bea6efbc1d71cd7c1ed504a5bd33",
     "flow_sid": "FW34e1b974dafc860cf1149869a6c04d1f",
-    "execution_sid": "FN5d40d08f8e531fc9d91894935777d1e2",
-    "step_sid": "FT9a30db0a8e635320caa49c8add6a9d99",
-    "encrypted": true
+    "internal_id": "FN5d40d08f8e531fc9d91894935777d1e2"
 }
