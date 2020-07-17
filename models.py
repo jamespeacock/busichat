@@ -33,31 +33,38 @@ COMP = "completed"
 EID = "execution_sid"
 FLOW_SID = "flow_sid"
 
-
 def ensure_formatted(numbers):
-    re.compile(".*?(\(?\d{3})? ?[\.-]? ?\d{3} ?[\.-]? ?\d{4}).*?", re.S)
+    # re.compile(".*?(\(?\d{3})? ?[\.-]? ?\d{3} ?[\.-]? ?\d{4}).*?", re.S)
     for n in numbers:
-
         yield n  # ensure +1[0-9]+ & len(n) == 12 //"\+1[0-9]{10}"
 
 
 class AnswerRecord:
 
     def __init__(self, row, questions={}, initiating=True):
-        self.phone = row.get(PHONE, '')
-        self.campaign = row.get(CAMPAIGN, '')
-        if initiating:
-            self.initiated = row.get('initiated', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        if isinstance(row, list):
+            self.phone = row[0]
+            self.campaign = row[1]
+            self.initiated = row[2]
+            self.completed = row[3]
+            self.execution_sid = row[4]
+            self.flow_sid = row[5]
         else:
-            self.completed = row.get('completed', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        self.execution_sid = row.get(EID)
-        self.flow_sid = row[FLOW_SID]
+            self.phone = row.get(PHONE, '')
+            self.campaign = row.get(CAMPAIGN, '')
+            if initiating:
+                self.initiated = row.get('initiated', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                self.completed = ""
+            else:
+                self.initiated = ""
+                self.completed = row.get('completed', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            self.execution_sid = row.get(EID)
+            self.flow_sid = row[FLOW_SID]
         self.questions = questions
 
     def update(self, other):
-        for q, v in self.questions:
-            if not v:
-                self.questions[q] = other.questions[q]
+        for q, v in other.questions.items():
+            self.questions[q] = v
 
         self.completed = other.completed
 
@@ -72,6 +79,15 @@ class AnswerRecord:
             **self.questions
         }
         return row
+
+    def to_vals(self):
+        return [self.phone, self.campaign, self.initiated, self.completed,
+                self.execution_sid,  self.flow_sid, *(self.questions.values())]
+
+    def range(self, row):
+        ncols = 6 + len(self.questions)
+
+        return 'A%i:%s%i' % (row, chr(ord('@')+ncols), row)
 
 
 class MySheet:
@@ -143,10 +159,10 @@ class Campaign:
         if not results:
             return None
         result = results[0]
-        sheet_name = result["campaign_sheet"]
-        flow_number = result["flow_number"]
-        questions = result["questions"].split(",")
-        action_value = result["action_value"]
+        sheet_name = result[1]
+        flow_number = result[2]
+        questions = result[3].split(",")
+        action_value = result[4]
         return Campaign(sheet_name, flow_sid, flow_number, questions, action_value)
 
     def get_flow_url(self, flow_sid):
@@ -156,15 +172,15 @@ class Campaign:
 
         #Shared info for campaign launch
         row = {
-            "campaign": self.action,
-            "flow_sid": self.flow_sid
+            CAMPAIGN: self.action,
+            FLOW_SID: self.flow_sid
         }
 
         ids = self.scan_for_action()
 
         for n in ids:
-            row["eid"] = ids[n]["eid"]
-            row['phone'] = n
+            row[EID] = ids[n][EID]
+            row[PHONE] = '+1' + n if len(n) == 10 else n if len(n) == 2 else '+' + n
             # save initiated response
             self.save_response(row)
         return ids
@@ -175,35 +191,37 @@ class Campaign:
     def scan_for_action(self):
         act_col = process.extract(ACTION, self.contacts.cols, limit=1)[0][0]
 
-        matches = self.contacts.findall(self.action, act_col)
+        matches = self.contacts.index(self.action, act_col)
         if matches:
             rows = [m.row for m in matches]
             numbers = self.contacts.values(PHONE, rows)
-            ids = self.initiate_workflow(numbers)
+            ids = self.initiate_workflow(numbers, {"campaign": self.action})
 
             return ids
 
     def results(self):
         return self.responses.sheet.get_all_values()
 
-    def update_record(self, record, phone, campaign):
-        
-        matches = set([c.row for c in self.responses.index(phone, PHONE)])
-        matches.intersection(set([c.row for c in self.responses.index(campaign, CAMPAIGN)]))
-        row = matches[0] if matches else None
+    def update_record(self, record):
+        matches = set([c.row for c in self.responses.index(record.phone, PHONE)])
+        matches.intersection(set([c.row for c in self.responses.index(record.campaign, CAMPAIGN)]))
+        row = matches.pop() if matches else None
         existing = AnswerRecord(self.responses.sheet.row_values(row))
         existing.update(record)
-        self.responses.sheet.insert_row(row, existing.to_row())
+        cells = self.responses.sheet.range(existing.range(row))
+        for c, v in zip(cells, existing.to_vals()):
+            c.value = v
+        self.responses.sheet.update_cells(cells)
 
-    def initiate_workflow(self, numbers, info=defaultdict(dict)):
+    def initiate_workflow(self, numbers, info={}):
 
         ids = {}
         for number in ensure_formatted(numbers):
-
+            ids[number] = {}
             body = {
                 "To": number,
                 "From": self._from,
-                **(info[number] if info else {})
+                "Parameters": json.dumps(info)
             }
 
             # initiate text conversation in twilio studio
@@ -216,7 +234,7 @@ class Campaign:
                 try:
                     req_data = json.loads(resp.text)
                     ex_sid = req_data["sid"]
-                    ids[number]["eid"] = ex_sid
+                    ids[number][EID] = ex_sid
                 except JSONDecodeError:
                     logging.log(logging.ERROR, traceback.format_exc())
                     ids[number] = None

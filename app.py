@@ -4,14 +4,13 @@ from json import JSONDecodeError
 
 from flask.logging import default_handler
 
-from utils import handle_results, extract_answers
+from utils import handle_results
 
 root = logging.getLogger()
 root.addHandler(default_handler)
 
 from flask import Flask, request
-from models import Campaign
-
+from models import Campaign, client
 
 SECRET_KEY = 'oJpcTZ1JLCGTbXlmxWpAjB1tljbKQLJW'
 
@@ -44,33 +43,26 @@ def status():
 
 @app.route("/initiate", methods=['POST'])
 def initiate():
-    flow_sid = request.values.get('flow_sid')
+    flow_sid = json.loads(request.data).get('flow_sid')
     logging.log(logging.INFO, "Initiating: " + flow_sid)
     demo_campaign = Campaign.retrieve(flow_sid)
 
     demo_campaign.initiate()
+    return ''
+
 
 @app.route("/collect/<step>", methods=['GET', 'POST'])
 def collect(step):
-    app.logger.info(step)
-    logging.log(logging.INFO, request)
-    # logging.log(logging.INFO, request.values)
-    # Take responses from Twilio Studio & save directly
-    # TODO extract YES/NO census info / Zipcode info /
+    app.logger.info("Collecting: " + step)
     try:
-        data = json.loads(request.data)
+        flow_sid = request.values.get('flow_sid')
+        execution_sid = request.values.get('execution_sid')
+        context = client.studio.v1.flows(flow_sid).executions(execution_sid).execution_context().fetch()
     except JSONDecodeError:
         logging.log(logging.ERROR, "Could not read request data.")
         return '{"success": False}'
 
-    res = extract_answers(data["widgets"])
-    handle_results(res, )
-
-    #Lookup MySheet by Flow ID
-    # dbo.get_sheet(data['FLOW_SID'])
-    #Lookup row in MySheet by ExecutionID
-    res["execution_id"] = data["execution_id"]
-    #Insert into cell by column==question & row=eid_match
+    handle_results(context)
 
 
 
