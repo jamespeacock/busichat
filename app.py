@@ -47,7 +47,9 @@ def initiate():
     try:
         data = json.loads(request.data)
         demo_campaign = Campaign.retrieve(data['flow_sid'])
-        demo_campaign.initiate(data['phone']) if demo_campaign else print("Could not find campaign: " + data['flow_sid'])
+        ids = demo_campaign.initiate(data['phone']) if demo_campaign else print("Could not find campaign: " + data['flow_sid'])
+        print("started campaign for:" + str(ids))
+        return {'ids': ids}
     except Exception:
         print(traceback.format_exc())
     return {'error': traceback.format_exc()}

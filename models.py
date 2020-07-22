@@ -141,8 +141,7 @@ class Campaign:
     def __init__(self, sheet_name, flow_sid, flow_number, questions=[], action_value=""):
         self.contacts = MySheet(sheet_name)
         self.responses = MySheet(sheet_name, 1)
-        self.links = MySheet(sheet_name, 2)
-        self.scores = MySheet(sheet_name, 3)
+        self.scores = MySheet(sheet_name, 2)
         self.flow_sid = flow_sid
         self.flow_url = self.get_flow_url(flow_sid)
         self._from = flow_number
