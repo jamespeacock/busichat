@@ -160,6 +160,7 @@ class Campaign:
         flow_number = result[2]
         questions = result[3].split(",")
         action_value = result[4]
+        print("Opening campaign sheet:", sheet_name)
         return Campaign(sheet_name, flow_sid, flow_number, questions, action_value)
 
     def get_flow_url(self, flow_sid):

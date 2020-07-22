@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 from json import JSONDecodeError
 
 from flask.logging import default_handler
@@ -43,11 +44,13 @@ def status():
 
 @app.route("/initiate", methods=['POST'])
 def initiate():
-    data = json.loads(request.data)
-    demo_campaign = Campaign.retrieve(data['flow_sid'])
-    #
-    demo_campaign.initiate(data['phone']) if demo_campaign else print("Could not find campaign: " + data['flow_sid'])
-    return ''
+    try:
+        data = json.loads(request.data)
+        demo_campaign = Campaign.retrieve(data['flow_sid'])
+        demo_campaign.initiate(data['phone']) if demo_campaign else print("Could not find campaign: " + data['flow_sid'])
+    except Exception:
+        print(traceback.format_exc())
+    return {'error': traceback.format_exc()}
 
 
 @app.route("/test_initiate", methods=['POST'])

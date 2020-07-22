@@ -10,6 +10,7 @@ services:
       - "80:80"
     environment:
       - POSTGRES_PASSWORD=test
+      - SETTINGS=.env
     depends_on:
       - postgres
     restart: always
