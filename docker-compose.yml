@@ -11,20 +11,4 @@ services:
     environment:
       - POSTGRES_PASSWORD=test
       - SETTINGS=.env
-    depends_on:
-      - postgres
     restart: always
-
-  postgres:
-    container_name: postgres
-    build:
-      context: ./postgres
-    volumes:
-      - /var/lib/docker/volumes/busichat/postgres:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_PASSWORD=test
-    restart: always
-
-
