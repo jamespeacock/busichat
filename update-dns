@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Make sure only root can run our script
+
+#. /etc/dns/config
+
+rm -rf transaction.yaml
+
+#Gather IP
+IP_ADDRESS=$(gcloud compute instances describe $INSTANCE --zone us-central1-a | grep natIP | awk {'print $2'})
+
+#Gather hostname
+#IO_HOSTNAME=$(gcloud compute instances describe $INSTANCE --zone us-central1-a | grep url: | awk {'print $2'})
+
+OLD_IP_ADDRESS=$(gcloud dns record-sets list --zone=$ZONE --name=$NAME --format=json | jq -r .[0].rrdatas[0])
+
+gcloud dns record-sets transaction start -z=$ZONE
+gcloud dns record-sets transaction remove --zone $ZONE --name $NAME --ttl 120 --type A $OLD_IP_ADDRESS
+gcloud dns record-sets transaction add --zone $ZONE --name $NAME --ttl 120 --type A $IP_ADDRESS
+gcloud dns record-sets transaction execute -z=$ZONE
