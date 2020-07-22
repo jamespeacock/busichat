@@ -1,12 +1,9 @@
-import datetime
 import json
 import logging
 import traceback
 from json import JSONDecodeError
 import requests
 import datetime
-import re
-from collections import defaultdict
 
 import gspread
 from fuzzywuzzy import process
@@ -168,7 +165,7 @@ class Campaign:
     def get_flow_url(self, flow_sid):
         return "https://studio.twilio.com/v1/Flows/{flow_sid}/Executions".format(flow_sid=flow_sid)
 
-    def initiate(self):
+    def initiate(self, phone=None):
 
         #Shared info for campaign launch
         row = {
@@ -176,7 +173,7 @@ class Campaign:
             FLOW_SID: self.flow_sid
         }
 
-        ids = self.scan_for_action()
+        ids = self.scan_and_initiate(phone)
 
         for n in ids:
             row[EID] = ids[n][EID]
@@ -188,14 +185,21 @@ class Campaign:
     def save_response(self, row):
         self.responses.create(AnswerRecord(row).to_row())
 
-    def scan_for_action(self):
-        act_col = process.extract(ACTION, self.contacts.cols, limit=1)[0][0]
-
-        matches = self.contacts.index(self.action, act_col)
+    def scan_and_initiate(self, phone=None):
+        if phone:
+            phone_col = process.extract(PHONE, self.contacts.cols, limit=1)[0][0]
+            matches = self.contacts.index(phone, phone_col)
+        else:
+            act_col = process.extract(ACTION, self.contacts.cols, limit=1)[0][0]
+            matches = self.contacts.index(self.action, act_col)
         if matches:
             rows = [m.row for m in matches]
             numbers = self.contacts.values(PHONE, rows)
-            ids = self.initiate_workflow(numbers, {"campaign": self.action})
+            census = self.contacts.values("census", rows)
+            registered = self.contacts.values("registered", rows)
+            ids = self.initiate_workflow(numbers, {
+                "campaign": self.action,
+            }, {"census_complete": census, "registration_complete": registered})
 
             return ids
 
@@ -213,15 +217,18 @@ class Campaign:
             c.value = v
         self.responses.sheet.update_cells(cells)
 
-    def initiate_workflow(self, numbers, info={}):
+    def initiate_workflow(self, numbers, shared={}, row_data={}):
 
         ids = {}
-        for number in ensure_formatted(numbers):
+        for i, number in enumerate(ensure_formatted(numbers)):
             ids[number] = {}
+            params = shared
+            for k in row_data:
+                params[k] = row_data[k][i]
             body = {
                 "To": number,
                 "From": self._from,
-                "Parameters": json.dumps(info)
+                "Parameters": json.dumps(params)
             }
 
             # initiate text conversation in twilio studio
@@ -229,7 +236,7 @@ class Campaign:
 
             if resp.status_code != 200:
                 logging.log(logging.ERROR, resp.text)
-                ids[number] = None
+                ids[number][EID] = "failed"
             else:
                 try:
                     req_data = json.loads(resp.text)
@@ -237,6 +244,6 @@ class Campaign:
                     ids[number][EID] = ex_sid
                 except JSONDecodeError:
                     logging.log(logging.ERROR, traceback.format_exc())
-                    ids[number] = None
+                    ids[number][EID] = "failed"
 
         return ids
