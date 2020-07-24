@@ -9,6 +9,8 @@ import gspread
 from fuzzywuzzy import process
 from oauth2client.service_account import ServiceAccountCredentials
 from twilio.rest import Client
+
+from _logger import root
 from settings import ACCOUNT_SID, AUTH_TOKEN, SERVICE_SID
 
 account_sid = ACCOUNT_SID
@@ -159,7 +161,7 @@ class Campaign:
         flow_number = result[2]
         questions = result[3].split(",")
         action_value = result[4]
-        print("Opening campaign sheet:", sheet_name)
+        root.info("Opening campaign sheet: " + sheet_name)
         return Campaign(sheet_name, flow_sid, flow_number, questions, action_value)
 
     def get_flow_url(self, flow_sid):
@@ -176,10 +178,12 @@ class Campaign:
         ids = self.scan_and_initiate(phone)
 
         for n in ids:
+            root.info("initiating for " + phone)
             row[EID] = ids[n][EID]
             row[PHONE] = '+1' + n if len(n) == 10 else n if len(n) == 2 else '+' + n
             # save initiated response
             self.save_response(row)
+            root.info("recorded initiation in spreadsheet.")
         return ids
 
     def save_response(self, row):

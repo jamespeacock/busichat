@@ -1,36 +1,14 @@
 import json
-import logging
 import traceback
 from json import JSONDecodeError
-
-from flask.logging import default_handler
+from _logger import root
 
 from utils import handle_results
 
-root = logging.getLogger()
-root.addHandler(default_handler)
-
 from flask import Flask, request
-from logging.config import dictConfig
 from models import Campaign, client
 
 SECRET_KEY = 'oJpcTZ1JLCGTbXlmxWpAjB1tljbKQLJW'
-
-
-dictConfig({
-    'version': 1,
-    'formatters': {'default': {
-        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'formatter': 'default'
-    }},
-    'root': {
-        'level': 'DEBUG',
-        'handlers': ['wsgi']
-    }
-})
 
 app = Flask(__name__)
 
@@ -53,29 +31,23 @@ STATES = [
 ]
 
 
-@app.route("/status", methods=['GET', 'POST'])
-def status():
-    logging.log(logging.INFO, "Status")
-    logging.log(logging.INFO, request)
-
-
 @app.route("/initiate", methods=['POST'])
 def initiate():
     try:
         data = json.loads(request.data)
         demo_campaign = Campaign.retrieve(data['flow_sid'])
         ids = demo_campaign.initiate(data['phone']) if demo_campaign else print("Could not find campaign: " + data['flow_sid'])
-        app.logger.info("started campaign for:" + str(ids))
+        root.logger.info("started campaign for:" + str(ids))
         return {'ids': ids}
     except Exception:
-        app.logger.error(traceback.format_exc())
+        root.logger.error(traceback.format_exc())
     return {'error': traceback.format_exc()}
 
 
 @app.route("/test_initiate", methods=['POST'])
 def test_initiate():
     flow_sid = json.loads(request.data).get('flow_sid')
-    logging.log(logging.INFO, "Initiating: " + flow_sid)
+    root.info("Initiating: " + flow_sid)
     demo_campaign = Campaign.retrieve(flow_sid)
 
     demo_campaign.initiate()
@@ -84,35 +56,33 @@ def test_initiate():
 
 @app.route("/collect/<step>", methods=['GET', 'POST'])
 def collect(step):
-    app.logger.info("Collecting: " + step)
+    root.info("Collecting: " + step)
     try:
         flow_sid = request.values.get('flow_sid')
         execution_sid = request.values.get('execution_sid')
-        app.logger.info("Fetching context for execution: " + execution_sid)
+        root.info("Fetching context for execution: " + execution_sid)
         context = client.studio.v1.flows(flow_sid).executions(execution_sid).execution_context().fetch()
     except JSONDecodeError:
-        logging.log(logging.ERROR, "Could not read request data.")
+        root.error("Could not read request data.")
         return '{"success": False}'
 
     handle_results(context)
 
-
     return '{"success": True}'
-
 
 
 @app.route("/fallback", methods=['GET', 'POST'])
 def fallback():
     """Respond with the number of text messages sent between two parties."""
-    app.logger.info("Hit Fallback /")
-    logging.log(logging.INFO, request)
+    root.info.info("Hit Fallback /")
+    root.info(request.values)
     return str("")
 
 
 @app.route("/error", methods=["POST"])
 def error():
-    logging.log(logging.INFO, request)
-
+    root.info("Hit Error endpoint.")
+    root.info(request.values)
 
 
 if __name__ == "__main__":

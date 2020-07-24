@@ -1,5 +1,7 @@
+import logging
 
 from models import CAMPAIGN, PHONE, Campaign, EID, FLOW_SID, AnswerRecord
+from _logger import root
 
 CONTEXT = "context"
 WIDGETS = "widgets"
@@ -25,6 +27,7 @@ def handle_results(flow_data):
     completed_record = AnswerRecord(res, initiating=False)
     campaign = Campaign.retrieve(flow_sid=completed_record.flow_sid)
     if not campaign:
+        root.error("Could not find campaign for this flow_sid.")
         return {"error": "Could not find campaign for this flow_sid."}
 
     flow_responses = flow_data.context['widgets']
@@ -36,7 +39,9 @@ def handle_results(flow_data):
             continue
         completed_record.questions[q] = q_data[IN][BODY]
 
+    root.info("Updating record...")
     campaign.update_record(completed_record)
+    root.info("Completed update: " + str(completed_record.to_vals()))
 
     return True
 
