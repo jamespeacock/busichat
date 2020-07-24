@@ -201,6 +201,7 @@ class Campaign:
             numbers = self.contacts.values(PHONE, rows)
             census = self.contacts.values("census", rows)
             registered = self.contacts.values("registered", rows)
+            # TODO figure out how not to manually set these initial values
             ids = self.initiate_workflow(numbers, {
                 "campaign": self.action,
             }, {"census_complete": census, "registration_complete": registered})
@@ -212,7 +213,7 @@ class Campaign:
 
     def update_record(self, record):
         matches = set([c.row for c in self.responses.index(record.phone, PHONE)])
-        matches.intersection(set([c.row for c in self.responses.index(record.campaign, CAMPAIGN)]))
+        matches.intersection(set([c.row for c in self.responses.index(record.execution_sid, EID)]))
         row = matches.pop() if matches else None
         existing = AnswerRecord(self.responses.sheet.row_values(row))
         existing.update(record)

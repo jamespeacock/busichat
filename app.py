@@ -37,10 +37,10 @@ def initiate():
         data = json.loads(request.data)
         demo_campaign = Campaign.retrieve(data['flow_sid'])
         ids = demo_campaign.initiate(data['phone']) if demo_campaign else print("Could not find campaign: " + data['flow_sid'])
-        root.logger.info("started campaign for:" + str(ids))
+        root.info("started campaign for:" + str(ids))
         return {'ids': ids}
     except Exception:
-        root.logger.error(traceback.format_exc())
+        root.error(traceback.format_exc())
     return {'error': traceback.format_exc()}
 
 
