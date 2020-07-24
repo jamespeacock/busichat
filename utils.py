@@ -32,6 +32,7 @@ def handle_results(flow_data):
     for q in campaign.questions:
         q_data = flow_responses[q] if q in flow_responses else None
         if not q_data:
+            completed_record.questions[q] = "NA"
             continue
         completed_record.questions[q] = q_data[IN][BODY]
 

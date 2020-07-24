@@ -11,12 +11,29 @@ root = logging.getLogger()
 root.addHandler(default_handler)
 
 from flask import Flask, request
+from logging.config import dictConfig
 from models import Campaign, client
 
 SECRET_KEY = 'oJpcTZ1JLCGTbXlmxWpAjB1tljbKQLJW'
 
 
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['wsgi']
+    }
+})
+
 app = Flask(__name__)
+
 app.config.from_object(__name__)
 app.config.from_envvar('SETTINGS')
 
@@ -48,10 +65,10 @@ def initiate():
         data = json.loads(request.data)
         demo_campaign = Campaign.retrieve(data['flow_sid'])
         ids = demo_campaign.initiate(data['phone']) if demo_campaign else print("Could not find campaign: " + data['flow_sid'])
-        print("started campaign for:" + str(ids))
+        app.logger.info("started campaign for:" + str(ids))
         return {'ids': ids}
     except Exception:
-        print(traceback.format_exc())
+        app.logger.error(traceback.format_exc())
     return {'error': traceback.format_exc()}
 
 
@@ -71,13 +88,13 @@ def collect(step):
     try:
         flow_sid = request.values.get('flow_sid')
         execution_sid = request.values.get('execution_sid')
+        app.logger.info("Fetching context for execution: " + execution_sid)
         context = client.studio.v1.flows(flow_sid).executions(execution_sid).execution_context().fetch()
     except JSONDecodeError:
         logging.log(logging.ERROR, "Could not read request data.")
         return '{"success": False}'
 
     handle_results(context)
-
 
 
     return '{"success": True}'
