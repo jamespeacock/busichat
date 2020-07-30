@@ -201,10 +201,16 @@ class Campaign:
             numbers = self.contacts.values(PHONE, rows)
             census = self.contacts.values("census", rows)
             registered = self.contacts.values("registered", rows)
+            names = self.contacts.values("name", rows)
             # TODO figure out how not to manually set these initial values
-            ids = self.initiate_workflow(numbers, {
+            shared_data = {
                 "campaign": self.action,
-            }, {"census_complete": census, "registration_complete": registered})
+            }
+            individual_data = {
+                "census_complete": census,
+                "registration_complete": registered,
+                "name_ext": [n.replace(' ', '+') for n in names]}
+            ids = self.initiate_workflow(numbers, shared_data, individual_data)
 
             return ids
 
